@@ -1,6 +1,8 @@
 #include <iostream>
 #include <sstream>
 #include <restinio/all.hpp>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 int main(int argc, char const *argv[])
 {
@@ -10,39 +12,24 @@ int main(int argc, char const *argv[])
             .address("localhost")
             .request_handler([](auto req) {
                 const auto &header = req->header();
-                const auto body = req->body();
-                std::string headerstr = "";
-                std::for_each(header.begin(), header.end(), [&](const restinio::http_header_field_t& field){
-                    headerstr +=  fmt::format("[{}:{}]\n", field.name(), field.value()); 
+                json j;
+                static auto world = 0;
+                j["hello"] = world++;
+                j["method"] = method_to_string(header.method());
+                j["request_target"] = header.request_target();
+                j["path"] = header.path();
+                j["query"] = header.query();
+                j["fragment"] = header.fragment();
+                std::for_each(header.begin(), header.end(), [&](const restinio::http_header_field_t &field) {
+                    j["header_fields"][field.name()] = field.value();
                 });
-
-                std::string s = fmt::format(R"^^^(
-{{
-    "method": "{}"
-    "request_target": "{}"
-    "path": "{}"
-    "query": "{}"
-    "fragment": "{}"
-    "header":"{}"
-    "body": "{}" 
-}}
-)^^^",
-                                            method_to_string(header.method()),
-                                            header.request_target(),
-                                            header.path(),
-                                            header.query(),
-                                            header.fragment(),
-                                            headerstr,
-                                            body);
-                static auto count = 0;
-                return req->create_response().set_body(fmt::format("Hello, World! {} {}", count++, s)).done();
+                j["body"] = req->body();
+                return req->create_response()
+                    .append_header_date_field()
+                    .append_header(restinio::http_field::content_type, "text/json; charset=utf-8")
+                    .set_body(j.dump())
+                    .done();
             }));
 
     return 0;
 }
-
-static auto ____ = []() {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-    return nullptr;
-};
