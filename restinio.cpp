@@ -7,7 +7,7 @@ int main(int argc, char const *argv[])
     restinio::run(
         restinio::on_thread_pool(16)
             .port(8080)
-            .address("localhost")
+            .address("0.0.0.0")
             .request_handler([](auto req) {
                 const auto &header = req->header();
                 json j;
@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
                 j["path"] = header.path();
                 j["query"] = header.query();
                 j["fragment"] = header.fragment();
-                std::for_each(header.begin(), header.end(), [&](const restinio::http_header_field_t &field) {
+                std::for_each(header.begin(), header.end(), [&](const auto &field) {
                     j["header_fields"][field.name()] = field.value();
                 });
                 j["body"] = req->body();

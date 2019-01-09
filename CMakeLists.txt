@@ -27,3 +27,18 @@ find_path(NLOHMANNJSON_INCLUDE_DIR NAMES json.hpp PATH_SUFFIXES nlohmann)
 add_executable(restinio restinio.cpp)
 target_include_directories(restinio PRIVATE ${NLOHMANNJSON_INCLUDE_DIR})
 target_link_libraries(restinio PRIVATE restinio::restinio)
+
+find_path(CHAISCRIPT_INCLUDE_DIR NAMES chaiscript PATH_SUFFIXES include)
+add_executable(chaiscriptexe chaiscript.cpp)
+target_include_directories(chaiscriptexe PRIVATE ${CHAISCRIPT_INCLUDE_DIR})
+
+find_package(cereal CONFIG REQUIRED)
+add_executable(cerealexe cereal.cpp)
+target_link_libraries(cerealexe PRIVATE cereal)
+
+find_package(OpenSSL REQUIRED)
+add_executable(httplibexe httplib.h httplib.cpp)
+
+if(WIN32)
+  target_link_libraries(httplibexe wsock32 ws2_32 OpenSSL::SSL OpenSSL::Crypto)
+endif()
