@@ -42,3 +42,8 @@ add_executable(httplibexe httplib.h httplib.cpp)
 if(WIN32)
   target_link_libraries(httplibexe wsock32 ws2_32 OpenSSL::SSL OpenSSL::Crypto)
 endif()
+
+find_path(RAPIDXML_INCLUDE_DIR NAMES rapidxml.hpp PATH_SUFFIXES include)
+add_executable(rapidxmlexe rapidxml.cpp)
+target_include_directories(rapidxmlexe PRIVATE ${RAPIDXML_INCLUDE_DIR})
+target_link_libraries(rapidxmlexe PRIVATE fmt::fmt-header-only)
